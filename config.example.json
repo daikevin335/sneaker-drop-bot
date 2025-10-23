@@ -1,0 +1,5 @@
+{
+  "timezone": "America/Toronto",
+  "discord_webhook": "https://discord.com/api/webhooks/PASTE_YOUR_WEBHOOK_HERE",
+  "brand_filters": ["Nike", "Jordan", "Adidas"]
+}
