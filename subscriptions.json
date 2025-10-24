@@ -2,6 +2,10 @@
   {
     "drop_id": "1",
     "user": "me",
-    "reminders_sent": []
+    "reminders_sent": {
+      "30": false,
+      "15": false,
+      "5": false
+    }
   }
 ]

@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 # Add parent directory to path so we can import storage
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from bot.storage import Storage, load_drops, load_subs, save_subs
+from bot.storage import load_drops, save_drops, load_subs, save_subs
 
 TARGET_TZ = ZoneInfo("America/Toronto") 
 
@@ -35,7 +35,7 @@ def list_drops_text():
             dt = datetime.fromisoformat(drop_iso)
             date_str = dt.strftime("%b %d, %Y %I:%M %p")
         except:
-            date_str = drop.iso[:20] if drop.iso != 'N/A' else 'N/A' # Use raw string if parsing fails
+            date_str = drop_iso[:20] if drop_iso != 'N/A' else 'N/A' # Use raw string if parsing fails
 
         print(f"{drop_id:<8} {name:<35} {brand:<15} {date_str:<20}")
 
