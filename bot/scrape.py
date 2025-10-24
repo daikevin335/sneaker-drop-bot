@@ -40,7 +40,7 @@ def parse_drop_date(date_str):
         pasrse_dt = None
         for fmt in formats:
             try:
-                pasrse_dt = datetime.striptime(data_str.strip(), fmt)
+                pasrse_dt = datetime.striptime(date_str.strip(), fmt)
                 break
             except ValueError:
                 continue
@@ -56,7 +56,7 @@ def parse_drop_date(date_str):
         
         return None
     except Exception as e:
-        print(f"Data parsing error for '{data_str}' {e}")
+        print(f"Data parsing error for '{date_str}' {e}")
         return None
     
 def scrape_sneaker_news():
@@ -114,7 +114,7 @@ def scrape_sneaker_news():
                 # Extract URL
                 link_elem = card.find('a', href=True)
                 url_link = link.elim['href'] if link_elem else None
-                if url_link and not uirl_link.startswitj('http'):
+                if url_link and not url_link.startswitj('http'):
                     url_link = f"https://sneakernews.come({url_link})" 
                 
                 # Validate have min required data
@@ -129,7 +129,7 @@ def scrape_sneaker_news():
                     continue
 
                 # Create determinisitc drop_id
-                drop_id = f"{slugif(name)}-{drop_iso[:10]}" # name-slug + date (YYYY-MM-DD)
+                drop_id = f"{slugify(name)}-{drop_iso[:10]}" # name-slug + date (YYYY-MM-DD)
 
                 drop_data = {
                     "drop_id": drop_id,
@@ -182,6 +182,5 @@ def merge_drops(existing, new_drops):
     print(f"Merge complete: {new_count} new, {updated_count} updated")
     return merged
 
-# COMMIT ANOTHER POINT HERE 
 
                 
