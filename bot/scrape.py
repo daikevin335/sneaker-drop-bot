@@ -115,7 +115,7 @@ def scrape_sneaker_news():
                     elif 'new balance' in name.lower():
                         brand = "New Balance"
 
-                # Extrac date
+                # Extract date
                 date_elem = card.find('time') or card.find('span', class_='date')
                 date_str = date_elem.get_text(strip=True) if date_elem else None 
 
