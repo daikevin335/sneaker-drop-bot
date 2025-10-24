@@ -182,5 +182,19 @@ def merge_drops(existing, new_drops):
     print(f"Merge complete: {new_count} new, {updated_count} updated")
     return merged
 
+def main():
+    """
+    Main scraping workflow: fetch new drops, merge with existing, save to CSV.
+    """
+    print("=== Sneaker Drop Scraper ===\n")
 
+    # Load existing drops
+    existing_drops = load_drops()
+    print(f"Existing drops in database: {len(existing_drops)}\n")
+
+    # Scrape new drops
+    new_drops = scrape_sneaker_news()
+
+    if not new_drops:
+    
                 
