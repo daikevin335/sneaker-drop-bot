@@ -154,4 +154,34 @@ def scrape_sneaker_news():
     except Exception as e:
         print(f"Scraping error: {e}")
         return drops
+    
+def merge_drops(existing, new_drops):
+    """
+    Merge new drops with existing ones, avoiding duplicates based on drop_id.
+    Updates existing entries if found, adds new ones otherwise.
+    """
+    existing_ids = {drop['drop_id'] for drop in existing}
+    merged = existing.copy()
+    
+    new_count = 0
+    updated_count = 0
+    
+    for new_drop in new_drops:
+        if new_drop['drop_id'] in existing_ids:
+            # Update existing entry
+            for i, drop in enumerate(merged):
+                if drop['drop_id'] == new_drop['drop_id']:
+                    merged[i] = new_drop
+                    updated_count += 1
+                    break
+        else:
+            # Add new entry
+            merged.append(new_drop)
+            new_count += 1
+    
+    print(f"Merge complete: {new_count} new, {updated_count} updated")
+    return merged
+
+# COMMIT ANOTHER POINT HERE 
+
                 
