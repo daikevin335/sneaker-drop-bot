@@ -6,20 +6,22 @@ import re
 from pathlib import Path
 import sys
 
-# Add parent directory to path to be able to import storagee
+# Add parent directory to path to be able to import storage
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from bot.storage import load_drops, save_drops
 
 # Target timezone for all drops
 TARGET_TZ = ZoneInfo("America/Toronto")
 
+# Convert sneaker names to clean IDs (e.g, "Air Jordan 1" -> "air_jordan-1")
 def slugify(text):
     """
     Convert text to a URL-friendly slug (lowercase, spaces to dashes, alphanumerica only).
-    Used to create consistentd drop IDs.
+    Used to create consistent drop IDs.
     """
+    # Lowercase and trim whitespace
     text = text.lower().strip()
-    text = re.sub(r'[^\w\s-]','', text) # Remove speical chars
+    text = re.sub(r'[^\w\s-]','', text) # Remove special chars
     text = re.sub(r'[-\s]+', '-', text)   # Replace spaces/dashes with single dash
     return text 
 
@@ -37,37 +39,41 @@ def parse_drop_date(date_str):
             "%B %d, %Y %I:%M %p", # "January 15, 2025 10:00 AM"
         ]
 
-        pasrse_dt = None
+        # Attempt to parse with each format 
+        parse_dt = None
         for fmt in formats:
             try:
-                pasrse_dt = datetime.striptime(date_str.strip(), fmt)
+                parse_dt = datetime.strptime(date_str.strip(), fmt) 
                 break
-            except ValueError:
+            except ValueError: # Try next format 
                 continue
 
-        if pasrse_dt:
+        # If still none, try to extract date with regex (e.g., "Jan 15th, 2025")
+        if parse_dt:
             # If no time specified, default to 10:00AM
-            if pasrse_dt.hour == 0 and pasrse_dt.minute == 0:
-                pasrse_dt = pasrse_dt.replace(hour=10, minute=0)
+            if parse_dt.hour == 0 and parse_dt.minute == 0:
+                parse_dt = parse_dt.replace(hour=10, minute=0)
 
             # Localize to target timezone
-            localized = pasrse_dt.replace(tzinfo=TARGET_TZ)
+            localized = parse_dt.replace(tzinfo=TARGET_TZ)
             return localized.isoformat()
         
+        # Regex fallback 
         return None
     except Exception as e:
         print(f"Data parsing error for '{date_str}' {e}")
         return None
-    
+
 def scrape_sneaker_news():
     """
     Scrape upcoming sneaker releases from SneakerNews.
     Returns list of drop dictionaries.
-    Defensive: skips entires if selectors fail.
+    Defensive: skips entries if selectors fail.
     """
     url = "https://sneakernew.com/release-dates/"
     drops = []
 
+    # Fetch the SneakerNews release page
     try: 
         print(f"Fetching: {url}")
         headers = {
@@ -75,7 +81,7 @@ def scrape_sneaker_news():
         }
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
-
+        # Parse HTML content 
         soup = BeautifulSoup(response.text, 'html.parser')
 
         # Find release cards (adjust selectors based on site structure)
@@ -84,6 +90,7 @@ def scrape_sneaker_news():
                         soup.find_all('div', class_='release-item') or \
                         soup.find_all('div', class_='post')
         
+        # Handle case of no cards found
         if not release_cards:
             print("No release cards found. Site structure may have changed.")
             return drops
@@ -139,15 +146,16 @@ def scrape_sneaker_news():
                     "url": url_link or ""
                 }
 
+                # Append to results
                 drops.append(drop_data)
                 print(f" Scrapped: {name} ({drop_iso[:10]})")
 
             except Exception as e:
-                print(f"Error pasring card: {e}")
-                continue 
-            
-        print(f"\n Succesfully scraped {len(drops)} drops")
-        return drops 
+                print(f"Error parsing card: {e}")
+                continue
+        # Final log 
+        print(f"\n Successfully scraped {len(drops)} drops")
+        return drops
     except requests.RequestException as e:
         print(f"Network error: {e}")
         return drops
@@ -155,22 +163,26 @@ def scrape_sneaker_news():
         print(f"Scraping error: {e}")
         return drops
     
+# Combine new drops with existing, avoiding duplicates 
 def merge_drops(existing, new_drops):
     """
     Merge new drops with existing ones, avoiding duplicates based on drop_id.
     Updates existing entries if found, adds new ones otherwise.
     """
+    # Create a set of existing drop_ids for quick lookup
     existing_ids = {drop['drop_id'] for drop in existing}
     merged = existing.copy()
-    
+
+    # Counters for logging
     new_count = 0
     updated_count = 0
-    
+
+    # Process each new drop
     for new_drop in new_drops:
         if new_drop['drop_id'] in existing_ids:
             # Update existing entry
-            for i, drop in enumerate(merged):
-                if drop['drop_id'] == new_drop['drop_id']:
+            for i, drop in enumerate(merged): # Find by drop_id 
+                if drop['drop_id'] == new_drop['drop_id']: 
                     merged[i] = new_drop
                     updated_count += 1
                     break
@@ -182,6 +194,7 @@ def merge_drops(existing, new_drops):
     print(f"Merge complete: {new_count} new, {updated_count} updated")
     return merged
 
+# Orchestrates workflow: load existing drops, scrape new ones, merge, save 
 def main():
     """
     Main scraping workflow: fetch new drops, merge with existing, save to CSV.
@@ -194,7 +207,19 @@ def main():
 
     # Scrape new drops
     new_drops = scrape_sneaker_news()
-
-    if not new_drops:
     
+    # Check if any new drops were scraped 
+    if not new_drops:
+        print("\nNo new drops scraped. Check site connection or selectors.")
+        return
+    
+    # Merge and save
+    all_drops = merge_drops(existing_drops, new_drops)  
+    save_drops(all_drops)
+
+    # Final log 
+    print(f"\n Total drops in database: {len(all_drops)}")
+
+if __name__ == '__main__':
+    main()  
                 
