@@ -192,6 +192,7 @@ def main():
 # TODO: Try to add additional link to actual store site / site of the drop    
 # TODO: Add error handling for invalid webhook URL
 # TODO: commit to git 
+# TODO: Add 1 day reminder 
     
 if __name__ == '__main__':
     main()
