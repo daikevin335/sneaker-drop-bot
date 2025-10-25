@@ -215,7 +215,7 @@ def main():
         now + timedelta(minutes=5),   # T-5 (5min reminder due)
         now + timedelta(minutes=1),  # T-1 (no reminder due)
     ]
-    
+
     for test_dt in test_times:
         stages = due_stages(now, test_dt)
         minutes = int((test_dt - now).total_seconds() / 60)
@@ -225,3 +225,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# TODO: Add 24 hour reminder and 1 hour reminder 
