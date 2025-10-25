@@ -136,7 +136,7 @@ def list_subs_text():
         print(f"   Reminders Sent: [T-30min: {sent_30}] [T-15min: {sent_15}] [T-5min: {sent_5}]\n") 
         print("-" * 60) 
 
-def remove_subscroption(drop_id, user="me"):
+def remove_subscription(drop_id, user="me"):
     """
     Unsubscribe from a drop_id.
     Return True if removed, False if not found.
@@ -154,6 +154,59 @@ def remove_subscroption(drop_id, user="me"):
     else:
         print(f"\n No subscription found for drop ID '{drop_id}'.\n")
         return False    
+
+def interactive_mode():
+    """
+    Interactive subscription management.
+    Allows you to subscribe to drops through a simple menu.
+    """
+    while True:
+        print("\n" + "="*50)
+        print("🔔 SNEAKER DROP SUBSCRIPTION MANAGER")
+        print("="*50)
+        print("1.  List available drops")
+        print("2.  Subscribe to a drop")
+        print("3.  List my subscriptions")
+        print("4.  Remove subscription")
+        print("5.  Exit")
+        print("="*50)
+        
+        choice = input("\nEnter your choice (1-5): ").strip()
+        
+        if choice == "1":
+            print("\n--- AVAILABLE DROPS ---")
+            list_drops_text()
+        
+        elif choice == "2":
+            print("\n--- SUBSCRIBE TO A DROP ---")
+            list_drops_text()  # Show drops first
+            print("\n" + "-"*40)
+            drop_id = input("Enter the drop_id you want to subscribe to: ").strip()
+            if drop_id:
+                add_subscription(drop_id)
+            else:
+                print(" No drop_id entered")
+       
+        elif choice == "3":
+            print("\n--- MY SUBSCRIPTIONS ---")
+            list_subs_text()
+        
+        elif choice == "4":
+            print("\n--- REMOVE SUBSCRIPTION ---")
+            list_subs_text()  # Show current subscriptions
+            print("\n" + "-"*40)
+            drop_id = input("Enter the drop_id to unsubscribe from: ").strip()
+            if drop_id:
+                remove_subscription(drop_id)
+            else:
+                print(" No drop_id entered")
+        
+        elif choice == "5":
+            print("\n👋 Goodbye! Happy sneaker hunting!")
+            break
+        
+        else:
+            print(" Invalid choice, please try again")
 
 def main():
     """
@@ -185,5 +238,5 @@ def main():
     print("\n✓ Subscription management demo complete")
 
 if __name__ == '__main__':
-    main()
+    interactive_mode()
     
