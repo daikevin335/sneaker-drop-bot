@@ -47,7 +47,7 @@ def send_notif(webhook_url: str, message: str, title: Optional[str] = None, url:
         print(f"Unexpected error: {e}")
         return False
 
-def send_discord_embed(webhook_url: str, title: str, description: str, url: Optional[str] = None, color: int = 0x00ff00, fields: Optional[list] = None) -> bool:
+def send_discord_embed(webhook_url: str, title: str, description: str, url: Optional[str] = None, color: int = 0x00ff00, fields: Optional[list] = None, image_url: Optional[str] = None, thumbnail_url: Optional[str] = None) -> bool:
     """
     Send rich embed message to Discord via webhook.
     Args:
@@ -57,6 +57,8 @@ def send_discord_embed(webhook_url: str, title: str, description: str, url: Opti
         url: Optional clickable URL for the title
         color: Color bar on left side (hex color as int, default green)
         fields: Optional list of {"name": "Field Name", "value": "Field Value"} dicts
+        image_url: Optional large image URL for the embed
+        thumbnail_url: Optional small thumbnail image URL
     
     Returns:
         True if sent successfully, False otherwise
@@ -76,6 +78,12 @@ def send_discord_embed(webhook_url: str, title: str, description: str, url: Opti
         if fields:
             embed["fields"] = fields
         
+        # Add images if provided
+        if image_url:
+            embed["image"] = {"url": image_url}
+        if thumbnail_url:
+            embed["thumbnail"] = {"url": thumbnail_url}
+        
         # Discord webhook payload with embeds
         payload = {
             "embeds": [embed]
@@ -90,14 +98,14 @@ def send_discord_embed(webhook_url: str, title: str, description: str, url: Opti
         return True
         
     except requests.RequestException as e:
-        print(f"❌ Discord embed failed: {e}")
+        print(f"Discord embed failed: {e}")
         return False
     except Exception as e:
-        print(f"❌ Unexpected error sending Discord embed: {e}")
+        print(f"Unexpected error sending Discord embed: {e}")
         return False
 
     
-def send_reminder(webhook_url: str, sneaker_name: str, brand: str, drop_time: str, minutes_left: int, url: Optional[str] = None) -> bool:
+def send_reminder(webhook_url: str, sneaker_name: str, brand: str, drop_time: str, minutes_left: int, url: Optional[str] = None, image_url: Optional[str] = None) -> bool:
     """
     Send a formatted drop reminder to Discord.
     Helper function that wraps send_discord_embed with sneaker-specific formatting 
@@ -109,6 +117,7 @@ def send_reminder(webhook_url: str, sneaker_name: str, brand: str, drop_time: st
         drop_time: Human-readable drop time
         minutes_left: How many minutes until drop
         url: Optional link to purchase page
+        image_url: Optional image URL for sneaker thumbnail
     
     Returns:
         True if sent successfully, False otherwise
@@ -131,14 +140,55 @@ def send_reminder(webhook_url: str, sneaker_name: str, brand: str, drop_time: st
         {"name": "Minutes Left", "value": f"⏰ {minutes_left} min", "inline": True}
     ]
 
-    # Call generic embed sender 
+    # Call generic embed sender with image support
     return send_discord_embed(
         webhook_url=webhook_url,
         title=f"🚨 Sneaker Drop Reminder ({minutes_left} min)",
         description=description,
         url=url,
         color=color,
-        fields=fields
+        fields=fields,
+        image_url=image_url
+    )
+
+def send_1day_reminder(webhook_url: str, sneaker_name: str, brand: str, drop_time: str, url: Optional[str] = None, image_url: Optional[str] = None) -> bool:
+    """
+    Send a 1-day advance reminder for sneaker drops.
+    Less urgent than the minute-based reminders.
+    
+    Args:
+        webhook_url: Discord webhook URL
+        sneaker_name: Name of the sneaker
+        brand: Brand (Nike, Adidas, etc.)
+        drop_time: Human-readable drop time
+        url: Optional link to purchase page
+        image_url: Optional image URL for sneaker thumbnail
+    
+    Returns:
+        True if sent successfully, False otherwise
+    """
+    # Blue color for 1-day reminder (less urgent)
+    color = 0x0099FF
+    
+    # Build description for 1-day reminder
+    description = f"📅 **{sneaker_name}** drops **tomorrow** at {drop_time}!"
+    
+    # Build fields for structured info
+    fields = [
+        {"name": "Brand", "value": brand, "inline": True},
+        {"name": "Drop Time", "value": drop_time, "inline": True},
+        {"name": "Time Left", "value": "📅 ~24 hours", "inline": True}
+    ]
+    
+    # Call generic embed sender
+    return send_discord_embed(
+        webhook_url=webhook_url,
+        title=f"📅 Sneaker Drop Tomorrow - {sneaker_name}",
+        description=description,
+        url=url,
+        color=color,
+        fields=fields,
+        image_url=image_url
     )
 
 def main():
@@ -177,22 +227,26 @@ def main():
     #    ]
     # )
     
-    # TEST 3: Sneaker reminder
+    # TEST 3: Sneaker reminder with image
     # send_reminder(
     #     webhook_url=WEBHOOK_URL,
     #     sneaker_name="Air Jordan 1 Retro High OG",
     #     brand="Nike",
     #     drop_time="Jan 15, 2025 10:00 AM",
     #     minutes_left=30,
-    #     url="https://sneakernews.com/example"
+    #     url="https://sneakernews.com/example",
+    #     image_url="https://example.com/jordan1-image.jpg"
     # )
 
-# TODO: Remove or comment out demo before uploading final version
-# TODO: Try to add image / picture of sneaker to embed message 
-# TODO: Try to add additional link to actual store site / site of the drop    
-# TODO: Add error handling for invalid webhook URL
-# TODO: commit to git 
-# TODO: Add 1 day reminder 
+    # TEST 4: 1-day advance reminder with real image
+    # send_1day_reminder(
+    #     webhook_url=WEBHOOK_URL,
+    #     sneaker_name="Air Jordan 1 Retro High OG",
+    #     brand="Nike",
+    #     drop_time="Jan 15, 2025 10:00 AM",
+    #     url="https://sneakernews.com/example",
+    #     image_url="https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500&h=500&fit=crop"
+    # )
     
 if __name__ == '__main__':
     main()
