@@ -10,7 +10,7 @@ from bot.storage import load_drops, load_subs, save_subs
 
 TARGET_TZ = ZoneInfo("America/Toronto")
 
-def due_stages(now: datetime, drop_dt: datetime) -> List[Tuple[str, int]]:
+def due_stages(now: datetime, drop_dt: datetime) -> List[str]:
     """
     Calculate which reminder stages are due based on current time vs drop time.
     
@@ -19,9 +19,11 @@ def due_stages(now: datetime, drop_dt: datetime) -> List[Tuple[str, int]]:
         drop_dt: Drop datetime (should be timezone-aware)
     
     Returns:
-        List of stage names that are due: ["30"], ["15"], ["5"], or []
+        List of stage names that are due: ["1440"], ["60"], ["30"], ["15"], ["5"], or []
     
     Time math logic:
+    - T-1440: Between 24-25 hours before drop (1 day)
+    - T-60: Between 60-61 minutes before drop (1 hour)
     - T-30: Between 30-31 minutes before drop
     - T-15: Between 15-16 minutes before drop  
     - T-5: Between 5-6 minutes before drop
@@ -31,19 +33,23 @@ def due_stages(now: datetime, drop_dt: datetime) -> List[Tuple[str, int]]:
     if drop_dt <= now:
         return []
 
-    # Calculate time difference in mins
+    # Calculate time difference in minutes
     time_diff = drop_dt - now
     min_left = int(time_diff.total_seconds() / 60)
 
     # Determine due stages
     due = []
 
-    # Check each stage  with 1-min windows
-    if 30 <= min_left < 31:
+    # Check each stage with 1-minute windows
+    if 1440 <= min_left < 1441:  # 24 hours (1 day)
+        due.append("1440")
+    elif 60 <= min_left < 61:    # 1 hour
+        due.append("60")
+    elif 30 <= min_left < 31:    # 30 minutes
         due.append("30")
-    elif 15 <= min_left < 16:
+    elif 15 <= min_left < 16:    # 15 minutes
         due.append("15")
-    elif 5 <= min_left < 6:
+    elif 5 <= min_left < 6:      # 5 minutes
         due.append("5")
 
     return due
@@ -207,6 +213,10 @@ def main():
     # Demo due_stages function
     print(f"\nDue stages calculation demo:")
     test_times = [
+        now + timedelta(hours=25),    # T-1500 (no reminder due)
+        now + timedelta(hours=24),    # T-1440 (24h reminder due)
+        now + timedelta(hours=2),     # T-120 (no reminder due)
+        now + timedelta(hours=1),     # T-60 (1h reminder due)
         now + timedelta(minutes=35),  # T-35 (no reminder due)
         now + timedelta(minutes=30),  # T-30 (30min reminder due)
         now + timedelta(minutes=20),  # T-20 (no reminder due)
@@ -219,11 +229,13 @@ def main():
     for test_dt in test_times:
         stages = due_stages(now, test_dt)
         minutes = int((test_dt - now).total_seconds() / 60)
-        print(f"  T-{minutes:2d}: {stages if stages else 'No reminders due'}")
+        hours = minutes // 60
+        mins = minutes % 60
+        time_str = f"{hours}h{mins}m" if hours > 0 else f"{mins}m"
+        print(f"  T-{time_str:>6}: {stages if stages else 'No reminders due'}")
     
     print(f"\n✓ Reminder logic demo complete")
+    print("✓ Enhanced with 24-hour and 1-hour reminder stages")
 
 if __name__ == '__main__':
-    main()
-
-# TODO: Add 24 hour reminder and 1 hour reminder 
+    main() 

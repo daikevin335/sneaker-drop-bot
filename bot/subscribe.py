@@ -68,9 +68,11 @@ def add_subscription(drop_id, user="me"):
         "drop_id": drop_id,
         "user": user,
         "reminders_sent": {
-            "30": False,  # 30 minutes before
-            "15": False,  # 15 minutes before
-            "5": False    # 5 minutes before
+            "1440": False,  # 24 hours before (1 day)
+            "60": False,    # 1 hour before
+            "30": False,    # 30 minutes before
+            "15": False,    # 15 minutes before
+            "5": False      # 5 minutes before
         }
     }
     
@@ -129,11 +131,13 @@ def list_subs_text():
         print(f"   User: {user}")
 
         # Show reminder status
+        sent_1440 = "Checked" if reminders.get("1440") else "Pending"
+        sent_60 = "Checked" if reminders.get("60") else "Pending"
         sent_30 = "Checked" if reminders.get("30") else "Pending"
         sent_15 = "Checked" if reminders.get("15") else "Pending"
         sent_5 = "Checked" if reminders.get("5") else "Pending"
 
-        print(f"   Reminders Sent: [T-30min: {sent_30}] [T-15min: {sent_15}] [T-5min: {sent_5}]\n") 
+        print(f"   Reminders Sent: [T-24h: {sent_1440}] [T-1h: {sent_60}] [T-30min: {sent_30}] [T-15min: {sent_15}] [T-5min: {sent_5}]\n") 
         print("-" * 60) 
 
 def remove_subscription(drop_id, user="me"):
